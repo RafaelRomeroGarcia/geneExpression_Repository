@@ -1,0 +1,134 @@
+%%%%%%%%%%%%%%
+%Rafael Romero Garcia
+%rr480@cam.ac.uk
+%3rd July 2017
+%University of Cambridge
+
+%Download the data and compute the valid probes
+function step1_download()
+
+% Allen Brain Institute dataset: 6 donors names and links
+donors_name={'normalized_microarray_donor9861',...
+             'normalized_microarray_donor10021',...
+             'normalized_microarray_donor12876',...
+             'normalized_microarray_donor14380',...
+             'normalized_microarray_donor15496',...
+             'normalized_microarray_donor15697'};
+         
+donors_links={'http://human.brain-map.org/api/v2/well_known_file_download/178238387',...
+              'http://human.brain-map.org/api/v2/well_known_file_download/178238373',...  
+              'http://human.brain-map.org/api/v2/well_known_file_download/178238359',...
+              'http://human.brain-map.org/api/v2/well_known_file_download/178238316',...
+              'http://human.brain-map.org/api/v2/well_known_file_download/178238266',...
+              'http://human.brain-map.org/api/v2/well_known_file_download/178236545'};
+
+          
+donors_links_T1={   'http://human.brain-map.org/api/v2/well_known_file_download/157722636',...
+                    'http://human.brain-map.org/api/v2/well_known_file_download/157723301',...
+                    'http://human.brain-map.org/api/v2/well_known_file_download/157722290',...
+                    'http://human.brain-map.org/api/v2/well_known_file_download/157721937',...
+                    'http://human.brain-map.org/api/v2/well_known_file_download/162021642',...     
+                    'http://human.brain-map.org/api/v2/well_known_file_download/157682966'};
+
+donors_links_FS={   'https://elements.admin.cam.ac.uk/repository.html?pub=0&com=get-file&rfurl=http%3A%2F%2Fwww.repository.cam.ac.uk%2Frt4ds%2Ffile%2F1094931%2Fdonor9861.zip',...
+                    'https://elements.admin.cam.ac.uk/repository.html?pub=0&com=get-file&rfurl=http%3A%2F%2Fwww.repository.cam.ac.uk%2Frt4ds%2Ffile%2F1094932%2Fdonor10021.zip',...
+                    'https://elements.admin.cam.ac.uk/repository.html?pub=0&com=get-file&rfurl=http%3A%2F%2Fwww.repository.cam.ac.uk%2Frt4ds%2Ffile%2F1094935%2Fdonor12876.zip',...
+                    'https://elements.admin.cam.ac.uk/repository.html?pub=0&com=get-file&rfurl=http%3A%2F%2Fwww.repository.cam.ac.uk%2Frt4ds%2Ffile%2F1094937%2Fdonor14380.zip',...
+                    'https://elements.admin.cam.ac.uk/repository.html?pub=0&com=get-file&rfurl=http%3A%2F%2Fwww.repository.cam.ac.uk%2Frt4ds%2Ffile%2F1094938%2Fdonor15496.zip',...
+                    'https://elements.admin.cam.ac.uk/repository.html?pub=0&com=get-file&rfurl=http%3A%2F%2Fwww.repository.cam.ac.uk%2Frt4ds%2Ffile%2F1094941%2Fdonor15697.zip'};
+  
+link_table='https://elements.admin.cam.ac.uk/repository.html?pub=0&com=get-file&rfurl=http%3A%2F%2Fwww.repository.cam.ac.uk%2Frt4ds%2Ffile%2F1094942%2FStructureList_RRGedit.csv';            
+
+mkdir('AIBS_map/Allen_FS/');                
+% Download table with structures names
+system(['wget -O AIBS_map/Allen_FS/StructureList_RRGedit.csv ' link_table]);
+
+%Download fsaverage subject
+link_fsaverage='https://elements.admin.cam.ac.uk/repository.html?pub=0&com=get-file&rfurl=http%3A%2F%2Fwww.repository.cam.ac.uk%2Frt4ds%2Ffile%2F1094950%2FfsaverageSubP.zip';            
+system(['wget -O AIBS_map/Allen_FS/fsaverageSubP.zip ' link_fsaverage]);
+unzip('AIBS_map/Allen_FS/fsaverageSubP.zip','AIBS_map/Allen_FS/fsaverageSubP');
+
+
+% Loop across donors            
+              
+for ifol=1:numel(donors_name)
+    donor_name=donors_name{ifol};
+    donor_link=donors_links{ifol};
+    donor_link_T1=donors_links_T1{ifol};
+    donor_link_FS=donors_links_FS{ifol};
+    mkdir('AIBS_map/downloaded/');
+    
+    %Download freesurfer folder of each donor
+    system(['wget -O AIBS_map/Allen_FS/' donor_name '.zip ' donor_link_FS]);
+    unzip(['AIBS_map/Allen_FS/' donor_name '.zip'],['AIBS_map/Allen_FS/' donor_name]);
+ 
+    
+    %Download data from AIBS web
+    
+    system(['wget -O AIBS_map/downloaded/' donor_name '.zip ' donor_link]);
+    unzip(['AIBS_map/downloaded/' donor_name '.zip'],['AIBS_map/downloaded/' donor_name]);
+    system(['wget -O AIBS_map/downloaded/' donor_name '/T1.nii.gz ' donor_link_T1]);
+    filename=['AIBS_map/downloaded/' donor_name '/Probes.csv'];
+    
+    %Import Probe file
+    [probe_id,probe_name,gene_id,gene_symbol,gene_name,entrez_id,chromosome]=import_probe(filename);
+ 
+    
+    %Do not include Probes without entrez_id 
+    find_complete_valid_cond1=find(isnan(entrez_id)==0);  
+    
+    %Do not include Probes not associated to genes id
+    find_complete_valid_cond2=find(not(strcmp(gene_symbol,'na'))); 
+    find_complete_valid=intersect(find_complete_valid_cond1,find_complete_valid_cond2);
+    gene_symbol_valid=gene_symbol(find_complete_valid);
+    gene_valid_notRep=unique(gene_symbol_valid);
+    
+    %Total number of genes should be 20737
+    if numel(gene_valid_notRep)~=20737
+        error('Wrong number of genes');
+    end
+    
+    %Extract valid probes
+    res_probid_val=probe_id(find_complete_valid);
+    res_gene_symbol_val=gene_symbol(find_complete_valid);
+    res_u_gene_symbol=unique(res_gene_symbol_val);
+    
+    %Look for all the probes matching gene label (include only valid genes)
+    for il=1:numel(res_gene_symbol_val)
+        pos=find(strcmp(res_gene_symbol_val{il},res_u_gene_symbol));
+        res_gene_symbol_val_tonum(il)=pos;
+    end
+    
+    %Look for all the probes matching gene label
+    for il=1:numel(gene_symbol)
+        pos=find(strcmp(gene_symbol{il},res_u_gene_symbol));
+        if isempty(pos)
+            pos=-1;
+        end
+        res_gene_symbol_tonum(il)=pos;
+    end
+    
+    %Save output
+    path_output=['AIBS_map/downloaded/' donor_name '/probe2gene/'];
+    [s1 s2 s3]=mkdir(path_output);
+    
+    %List that tranform from Probe to gene (only valid)
+    save([path_output 'res_gene_symbol_val_tonum.mat'],'res_gene_symbol_val_tonum');
+    
+    %List of all valid probes
+    save([path_output 'res_probid_val.mat'],'res_probid_val'); 
+    
+    %List that tranform from Probe to gene
+    save([path_output 'res_gene_symbol_tonum.mat'],'res_gene_symbol_tonum'); 
+    
+    %List of all probes
+    save([path_output 'probe_id.mat'],'probe_id'); 
+    
+    %List of all valid genes name (unique)
+    save([path_output 'res_u_gene_symbol.mat'],'res_u_gene_symbol'); 
+    
+    display(['Subject ' donor_name ' Done!']);
+
+end
+display(['Probe to gene completed']);
+end
