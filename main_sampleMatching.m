@@ -23,7 +23,7 @@ step1_download();
 display('Estimate gene expression from probe');
 step2_individualProbe_to_geneExpression();
 
-display('Estimate voxels location of each sample in T1freesurfer space of each donor');
+display('Estimate voxels location of each sample in T1 freesurfer space of each donor');
 step3_createGeneExpressionTable(hemiMirror);
 
 display('Generate gene expression and coexpression matrices');

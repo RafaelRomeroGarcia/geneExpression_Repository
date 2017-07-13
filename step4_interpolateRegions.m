@@ -22,7 +22,7 @@ end
 
 [s1 s2 s3]=mkdir(path_genes_general);
 
-interpMethod=1;
+interpMethod=2;
 %Interpolation method, in case there are regions without samples
 if interpMethod==1
     interpMethodName='nearest';
@@ -65,11 +65,7 @@ for img=1:numel(folder_name_list)
     vol_samples.vol=zeros(size(vol_samples.vol));
     vol_cortical=vol_parc;
     
-    %centroids_parcels=centroidFromParcellationFun([path_Allen 'Allen_FS/' donor_name '/parcellation/' parcellation_name]);
-
-    centroids_parcels=load('/home/rr480/FSFiles/fsaverageSubP/parcellation/centroids_dk.mat');centroids_parcels=centroids_parcels.centroids_parcels;
-    %centroids_parcels=load('/home/rr480/FSFiles/fsaverageSubP/parcellation/500.centroids_only_cortex.txt');
-    
+    centroids_parcels=centroidFromParcellationFun([path_Allen 'Allen_FS/' donor_name '/parcellation/' parcellation_name]);
 
     %Total parcel depend whether we choose one or both hemisphere
     if hemiMirror==1
