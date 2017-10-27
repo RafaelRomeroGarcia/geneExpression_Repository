@@ -39,6 +39,7 @@ donors_links_FS={  'https://www.repository.cam.ac.uk/bitstream/handle/1810/26527
     
 link_table='https://www.repository.cam.ac.uk/bitstream/handle/1810/265272/StructureList_RRGedit.csv?sequence=7&isAllowed=y';            
 
+
 mkdir('AIBS_map/Allen_FS/');                
 % Download table with structures names
 system(['wget -O AIBS_map/Allen_FS/StructureList_RRGedit.csv ' link_table]);
@@ -46,8 +47,9 @@ system(['wget -O AIBS_map/Allen_FS/StructureList_RRGedit.csv ' link_table]);
 %Download fsaverage subject
 link_fsaverage='https://www.repository.cam.ac.uk/bitstream/handle/1810/265272/fsaverageSubP.zip?sequence=9&isAllowed=y';            
 system(['wget -O AIBS_map/Allen_FS/fsaverageSubP.zip ' link_fsaverage]);
-pause(5);
+pause(15);
 unzip('AIBS_map/Allen_FS/fsaverageSubP.zip','AIBS_map/Allen_FS/fsaverageSubP');
+
 
 
 %Add auxiliar folder to include required functions
@@ -62,25 +64,37 @@ for ifol=1:numel(donors_name)
     donor_link_T1=donors_links_T1{ifol};
     donor_link_FS=donors_links_FS{ifol};
     mkdir('AIBS_map/downloaded/');
-    
+
     %Download freesurfer folder of each donor
     system(['wget -O AIBS_map/Allen_FS/' donor_name '.zip ' donor_link_FS]);
-    pause(5);
+    pause(15);
     unzip(['AIBS_map/Allen_FS/' donor_name '.zip'],['AIBS_map/Allen_FS/']);
  
     
     %Download data from AIBS web
     system(['wget -O AIBS_map/downloaded/' donor_name '.zip ' donor_link]);
-    pause(5);
+    pause(15);
     unzip(['AIBS_map/downloaded/' donor_name '.zip'],['AIBS_map/downloaded/' donor_name]);
     system(['wget -O AIBS_map/downloaded/' donor_name '/T1.nii.gz ' donor_link_T1]);
-    pause(5);
+    pause(15);
+
     filename=['AIBS_map/downloaded/' donor_name '/Probes.csv'];
-    
+   
     %Import Probe file
     [probe_id,probe_name,gene_id,gene_symbol,gene_name,entrez_id,chromosome]=import_probe(filename);
- 
-    
+    gene_symbol_orig=gene_symbol;
+    %Reannot probes using Richiardi et al 2015 table
+    reannot=importdata('auxiliar/Richiardi_Data_File_S2_Extended.csv');
+    reannot_probe=reannot.textdata(2:end,1);
+    reannot_id=reannot.data;
+    reannot_genes=reannot.textdata(2:end,4);
+    for in=1:numel(probe_name)
+        reannot_matching=find(strcmp(probe_name{in},reannot_probe));
+        if (not(isempty(reannot_matching))) && not(isempty(reannot_genes{reannot_matching}))
+            gene_symbol{in}=reannot_genes{reannot_matching}; 
+            %entrez_id(in)=reannot_id(reannot_matching);
+        end
+    end
     %Do not include Probes without entrez_id 
     find_complete_valid_cond1=find(isnan(entrez_id)==0);  
     
@@ -90,8 +104,10 @@ for ifol=1:numel(donors_name)
     gene_symbol_valid=gene_symbol(find_complete_valid);
     gene_valid_notRep=unique(gene_symbol_valid);
     
-    %Total number of genes should be 20737
-    if numel(gene_valid_notRep)~=20737
+    %Total number of genes should be 20737 (This was true before reannotation)
+    %Total number of genes should be 20647 (This was true before reannotation)
+    
+    if numel(gene_valid_notRep)~=20647
         error('Wrong number of genes');
     end
     

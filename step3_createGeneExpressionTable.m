@@ -42,7 +42,7 @@ for ifol=1:numel(folder_name_list)
     gene_samples=[];
     folder_name=folder_name_list{ifol};
     %Load gene expression values for each sample
-    genes_samples=load([path_probe_dir folder_name '/probe2gene/genes_samples.mat']);
+    genes_samples=load([path_probe_dir folder_name '/probe2gene/genes_samples_corr.mat']);
     genes_samples=genes_samples.genes_samples;
     if normalizeSubject
         genes_samples=zscore(genes_samples);
@@ -72,13 +72,14 @@ for ifol=1:numel(folder_name_list)
     mni_coor=mni_coor(1:3,:)';
         
     %For each sample, include only those that have a valid cortical label
-    samples_coor_mni=[];gene_samples_cx=[];
+    samples_coor_mni=[];gene_samples_cx=[];gene_samples_cx_index=zeros(1,size(mni_coor,1));
     ind=1;
     for is=1:size(mni_coor,1)
         
         if includeSubcortical || search_sub_table(table_names{is},table_sub,table_sub_cx)
             samples_coor_mni(ind,:)=mni_coor(is,:);
             gene_samples_cx(ind,:)=genes_samples(:,is);
+            gene_samples_cx_index(is)=1;
             ind=ind+1;
         end
     end
@@ -108,6 +109,7 @@ for ifol=1:numel(folder_name_list)
     %freesurfer space
     save([path_output 'raw/' folder_name '/samples_coor_vox.mat'],'samples_coor_vox');
     save([path_output 'raw/' folder_name '/gene_samples.mat'],'gene_samples');
+    save([path_output 'raw/' folder_name '/gene_samples_cx_index.mat'],'gene_samples_cx_index');
     save([path_output 'raw/' folder_name '/samples_coor_mni.mat'],'samples_coor_mni');
     
     display('Done');

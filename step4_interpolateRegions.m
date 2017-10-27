@@ -131,9 +131,13 @@ end
 
 %Save files
 path_output=path_genes_general;
-gene_regional_correlations=corrcoef(zscore(gene_regional_expression)');
+
+
 [s1 s2 s3]=mkdir(path_output);
 save([path_output 'gene_regional_expression.mat'],'gene_regional_expression');
+gene_regional_expression=zscore(gene_regional_expression);
+save([path_output 'gene_regional_expression_zscored.mat'],'gene_regional_expression');
+gene_regional_correlations=corrcoef(gene_regional_expression');
 save([path_output 'gene_regional_correlations.mat'],'gene_regional_correlations');
 save([path_output 'parc_cortex_samples.mat'],'parc_cortex_samples');
 save([path_output 'parc_cortex_ratio.mat'],'parc_cortex_ratio');
