@@ -4,33 +4,32 @@
 %3rd July 2017
 %University of Cambridge
 %%%%%%%%%%%%%%%INPUT%%%%%%%%%%%%%%%%%%
-%Requires R installed
 
-%Each donor include a parcellation folder that must contain the file parcellation_name 
+%Each donor include a parcellation folder (AIBS_map/Allen_FS/donorXXXX/parcellation/) that must contain the file parcellation_name 
 parcellation_name='500.aparc_dilated_cortical2mm.nii.gz';
-%parcellation='aparc_dilated_cortical2mm.nii.gz_linear';
+%parcellation_name='aparc_dilated_cortical2mm.nii.gz';
 
 %hemiMirror=
 %0-Do not mirror samples between hemisphere and consider both hemispheres
 %1-Mirror samples and consider only left hemisphere
 %2-Mirror samples between hemispheres (left samples are fliped and
 %considered in the right hemisphere and viceversa)
-hemiMirror=1; 
+hemiMirror=2;1; 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-display('Download the data and compute the valid probes');
+display('Downloading the data and computing the valid probes');
 step1_download();
 
-display('Estimate gene expression from probe');
-step2_individualProbe_to_geneExpression();
+display('Mapping probe to gene');
+step2_probe2gene_mapping();
 
-display('Batch correction');
-step2_5_batch_correction();
+display('Estimating gene expression from probe');
+step3_individualProbe_to_geneExpression();
 
 display('Estimate voxels location of each sample in T1 freesurfer space of each donor');
-step3_createGeneExpressionTable(hemiMirror);
+step4_createGeneExpressionTable(hemiMirror);
 
 display('Generate gene expression and coexpression matrices');
-step4_interpolateRegions(hemiMirror,parcellation_name);
+step5_interpolateRegions(hemiMirror,parcellation_name);
 
 display('Gene expression matrix created successfully');

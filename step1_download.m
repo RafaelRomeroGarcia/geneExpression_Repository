@@ -40,7 +40,11 @@ donors_links_FS={  'https://www.repository.cam.ac.uk/bitstream/handle/1810/26527
 link_table='https://www.repository.cam.ac.uk/bitstream/handle/1810/265272/StructureList_RRGedit.csv?sequence=7&isAllowed=y';            
 
 
-mkdir('AIBS_map/Allen_FS/');                
+mkdir('AIBS_map/Allen_FS/');    
+
+% Copying list of genes (rows of the gene expression matrix)
+system('cp auxiliar/genes_20647.csv AIBS_map/');
+
 % Download table with structures names
 system(['wget -O AIBS_map/Allen_FS/StructureList_RRGedit.csv ' link_table]);
 
